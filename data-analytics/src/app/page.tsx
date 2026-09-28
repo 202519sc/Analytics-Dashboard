@@ -2,6 +2,7 @@
 
 import { useState, useRef, DragEvent, ChangeEvent } from "react";
 import Link from "next/link";
+import { useAuth, UserButton } from "@clerk/nextjs";
 
 interface UploadedFileState {
   file: File;
@@ -11,6 +12,7 @@ interface UploadedFileState {
 }
 
 export default function Home() {
+  const { isSignedIn, isLoaded } = useAuth();
   const [selectedFile, setSelectedFile] = useState<UploadedFileState | null>(null);
   const [dragActive, setDragActive] = useState<boolean>(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
@@ -101,18 +103,34 @@ export default function Home() {
           </div>
 
           <div className="flex items-center gap-3">
-            <Link
-              href="/login"
-              className="rounded-lg px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white transition-colors"
-            >
-              Log in
-            </Link>
-            <Link
-              href="/signup"
-              className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200 transition-colors"
-            >
-              Sign up
-            </Link>
+            {!isLoaded ? (
+              <div className="h-8 w-20 animate-pulse rounded-lg bg-zinc-200 dark:bg-zinc-800" />
+            ) : isSignedIn ? (
+              <div className="flex items-center gap-4">
+                <Link
+                  href="/dashboard"
+                  className="rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-blue-500 transition-colors"
+                >
+                  Go to Workspace
+                </Link>
+                <UserButton />
+              </div>
+            ) : (
+              <div className="flex items-center gap-2">
+                <Link
+                  href="/sign-in"
+                  className="rounded-lg px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-100 hover:text-zinc-950 dark:text-zinc-300 dark:hover:bg-zinc-800 dark:hover:text-white transition-colors"
+                >
+                  Log in
+                </Link>
+                <Link
+                  href="/sign-up"
+                  className="rounded-lg bg-zinc-900 px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-zinc-800 dark:bg-zinc-100 dark:text-zinc-900 dark:hover:bg-zinc-200 transition-colors"
+                >
+                  Sign up
+                </Link>
+              </div>
+            )}
           </div>
         </div>
       </header>
@@ -219,7 +237,7 @@ export default function Home() {
                 </div>
               )}
 
-              {/* Staged File Card (Awaiting Metadata Extractor Hook) */}
+              {/* Staged File Card */}
               {selectedFile && (
                 <div className="mt-5 rounded-2xl border border-zinc-200 bg-white p-5 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
                   <div className="flex items-center justify-between">
@@ -265,7 +283,7 @@ export default function Home() {
                           Metadata Extraction Pipeline Pending
                         </p>
                         <p className="mt-1 text-xs text-amber-700 dark:text-amber-400">
-                          File successfully validated and staged. The automated statistical metadata engine (row/column counts, missing values, duplicate detection, and distributions) will execute here once the backend extractor module is linked.
+                          File successfully validated and staged. The automated statistical metadata engine will execute here once the backend extractor module is linked.
                         </p>
                       </div>
                     </div>
@@ -276,7 +294,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* Features Unlocked Upon Login (SRS Sections 4.1 to 4.7) */}
+        {/* Feature Grid */}
         <section className="py-16 sm:py-24 bg-white dark:bg-[#09090b]">
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
             <div className="mx-auto max-w-2xl text-center">
@@ -293,7 +311,7 @@ export default function Home() {
             </div>
 
             <div className="mx-auto mt-12 grid max-w-5xl grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {/* Feature 1: Workspace & Datasets */}
+              {/* Feature 1 */}
               <div className="rounded-2xl border border-zinc-200 bg-zinc-50/50 p-6 dark:border-zinc-800 dark:bg-zinc-900/40">
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-blue-600 text-white shadow-sm">
                   <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -311,7 +329,7 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Feature 2: Data Cleaning */}
+              {/* Feature 2 */}
               <div className="rounded-2xl border border-zinc-200 bg-zinc-50/50 p-6 dark:border-zinc-800 dark:bg-zinc-900/40">
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-emerald-600 text-white shadow-sm">
                   <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -329,7 +347,7 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Feature 3: ML Preprocessing */}
+              {/* Feature 3 */}
               <div className="rounded-2xl border border-zinc-200 bg-zinc-50/50 p-6 dark:border-zinc-800 dark:bg-zinc-900/40">
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-purple-600 text-white shadow-sm">
                   <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -347,7 +365,7 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Feature 4: Interactive Visualisation */}
+              {/* Feature 4 */}
               <div className="rounded-2xl border border-zinc-200 bg-zinc-50/50 p-6 dark:border-zinc-800 dark:bg-zinc-900/40">
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-amber-500 text-white shadow-sm">
                   <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -365,7 +383,7 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Feature 5: Audit Trail & Processing History */}
+              {/* Feature 5 */}
               <div className="rounded-2xl border border-zinc-200 bg-zinc-50/50 p-6 dark:border-zinc-800 dark:bg-zinc-900/40">
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-rose-500 text-white shadow-sm">
                   <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -383,7 +401,7 @@ export default function Home() {
                 </div>
               </div>
 
-              {/* Feature 6: Report Generation & Export */}
+              {/* Feature 6 */}
               <div className="rounded-2xl border border-zinc-200 bg-zinc-50/50 p-6 dark:border-zinc-800 dark:bg-zinc-900/40">
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-indigo-600 text-white shadow-sm">
                   <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -411,18 +429,31 @@ export default function Home() {
                 Create your account in seconds to save your progress, unlock automated cleaning, and generate ML-ready features.
               </p>
               <div className="mt-6 flex flex-wrap items-center justify-center gap-4">
-                <Link
-                  href="/signup"
-                  className="rounded-xl bg-white px-6 py-3 text-sm font-semibold text-zinc-950 hover:bg-zinc-200 transition-colors shadow-sm"
-                >
-                  Create Free Account
-                </Link>
-                <Link
-                  href="/login"
-                  className="rounded-xl border border-zinc-700 bg-zinc-800/80 px-6 py-3 text-sm font-semibold text-zinc-200 hover:bg-zinc-800 transition-colors"
-                >
-                  Log into Account
-                </Link>
+                {!isLoaded ? (
+                  <div className="h-11 w-40 animate-pulse rounded-xl bg-zinc-800" />
+                ) : isSignedIn ? (
+                  <Link
+                    href="/dashboard"
+                    className="rounded-xl bg-white px-6 py-3 text-sm font-semibold text-zinc-950 hover:bg-zinc-200 transition-colors shadow-sm"
+                  >
+                    Open Your Workspace
+                  </Link>
+                ) : (
+                  <>
+                    <Link
+                      href="/sign-up"
+                      className="rounded-xl bg-white px-6 py-3 text-sm font-semibold text-zinc-950 hover:bg-zinc-200 transition-colors shadow-sm"
+                    >
+                      Create Free Account
+                    </Link>
+                    <Link
+                      href="/sign-in"
+                      className="rounded-xl border border-zinc-700 bg-zinc-800/80 px-6 py-3 text-sm font-semibold text-zinc-200 hover:bg-zinc-800 transition-colors"
+                    >
+                      Log into Account
+                    </Link>
+                  </>
+                )}
               </div>
             </div>
           </div>
