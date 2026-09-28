@@ -17,7 +17,7 @@ export default async function DashboardPage() {
         </div>
         <div className="flex items-center gap-4">
           <span className="text-xs text-zinc-500 font-mono">ID: {userId}</span>
-          <UserButton afterSignOutUrl="/" />
+          <UserButton />
         </div>
       </header>
 
@@ -27,7 +27,7 @@ export default async function DashboardPage() {
             Welcome, {user?.firstName || user?.emailAddresses[0]?.emailAddress}!
           </h1>
           <p className="mt-2 text-sm text-zinc-600 dark:text-zinc-400">
-            Authentication is verified. Next step: connect MongoDB Atlas and Vercel Blob to load and persist your datasets under this user account[cite: 1].
+            Authentication is verified. Next step: connect MongoDB Atlas and Vercel Blob to load and persist your datasets under this user account.
           </p>
         </div>
       </main>
