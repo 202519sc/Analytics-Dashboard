@@ -20,14 +20,20 @@ export default function DashboardPage() {
     e.preventDefault();
     if (!file) return;
 
-    setUploadStatus("Requesting upload token...");
+    // Reject files strictly over 150MB before even trying
+    if (file.size > 150 * 1024 * 1024) {
+      setResult({ error: "File exceeds the 150MB limit." });
+      return;
+    }
+
+    setUploadStatus("Uploading directly to Blob...");
     setResult(null);
 
     try {
-      // 1. Direct upload using client token handler
       const newBlob = await upload(`datasets/${Date.now()}-${file.name}`, file, {
         access: "public",
         handleUploadUrl: "/api/datasets/upload-token",
+        multipart: true, // MUST BE TRUE to support 10.5 MB Netflix file
       });
 
       setUploadStatus(null);
@@ -61,7 +67,7 @@ export default function DashboardPage() {
         <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-8 shadow-sm">
           <h1 className="text-xl font-bold">Dataset Ingestion Pipeline</h1>
           <p className="mt-1 text-sm text-zinc-500">
-            Upload CSV, TSV, or Excel files. Direct client streaming to Public Vercel Blob store.
+            Upload CSV, TSV, or Excel files up to 150MB. Direct client streaming bypasses Serverless limits.
           </p>
 
           <form onSubmit={handleUpload} className="mt-6 flex flex-col gap-4">

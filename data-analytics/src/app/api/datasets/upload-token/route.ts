@@ -22,21 +22,27 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
     const jsonResponse = await handleUpload({
       body,
       request,
-      onBeforeGenerateToken: async (pathname) => {
+      onBeforeGenerateToken: async () => {
         const { userId } = await auth();
 
         if (!userId) {
-          throw new Error("Unauthorized: Please sign in first");
+          throw new Error("Unauthorized: Please sign in");
         }
 
         return {
-          maximumSizeInBytes: 100 * 1024 * 1024, // 100 MB max
+          maximumSizeInBytes: 150 * 1024 * 1024,
+          allowedContentTypes: [
+            "text/csv",
+            "text/tab-separated-values",
+            "text/plain",
+            "application/vnd.ms-excel",
+            "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+            "application/octet-stream"
+          ],
           tokenPayload: JSON.stringify({ userId }),
         };
       },
       onUploadCompleted: async ({ blob, tokenPayload }) => {
-        console.log("Blob upload completed in Vercel:", blob.url);
-
         if (!tokenPayload) return;
 
         try {
@@ -78,18 +84,15 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             newVersion: 1,
             timestamp: new Date(),
           });
-
-          console.log("Saved dataset to MongoDB Atlas:", dataset._id);
         } catch (dbErr) {
-          console.error("Failed to save dataset in MongoDB Atlas:", dbErr);
+          console.error("Database hook error on upload completion:", dbErr);
         }
       },
     });
 
     return NextResponse.json(jsonResponse);
   } catch (error: unknown) {
-    const errorMsg = error instanceof Error ? error.message : "Token generation failed";
-    console.error("Error in upload-token route:", errorMsg);
+    const errorMsg = error instanceof Error ? error.message : "Upload authorization failed";
     return NextResponse.json({ error: errorMsg }, { status: 400 });
   }
 }
