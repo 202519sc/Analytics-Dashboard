@@ -20,21 +20,39 @@ export default function DashboardPage() {
     e.preventDefault();
     if (!file) return;
 
-    // Reject files strictly over 150MB before even trying
     if (file.size > 150 * 1024 * 1024) {
       setResult({ error: "File exceeds the 150MB limit." });
       return;
     }
 
-    setUploadStatus("Uploading directly to Blob...");
+    setUploadStatus("Streaming directly to Blob...");
     setResult(null);
 
     try {
+      // 1. Upload to Vercel Blob
       const newBlob = await upload(`datasets/${Date.now()}-${file.name}`, file, {
         access: "public",
         handleUploadUrl: "/api/datasets/upload-token",
-        multipart: true, // MUST BE TRUE to support 10.5 MB Netflix file
+        multipart: true,
       });
+
+      setUploadStatus("Saving to database...");
+
+      // 2. Tell the API to save the dataset record (Works locally and in production)
+      const dbRes = await fetch("/api/datasets/save", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          url: newBlob.url,
+          pathname: newBlob.pathname,
+          size: file.size,
+        }),
+      });
+
+      if (!dbRes.ok) {
+        const dbError = await dbRes.json();
+        throw new Error(dbError.error || "Failed to save database record");
+      }
 
       setUploadStatus(null);
       setResult({
