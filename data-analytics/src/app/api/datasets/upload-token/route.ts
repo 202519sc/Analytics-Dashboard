@@ -5,6 +5,16 @@ import { connectToDatabase } from "@/lib/mongodb";
 import { Dataset } from "@/models/Dataset";
 import { ProcessingLog } from "@/models/ProcessingLog";
 
+const VALID_FORMATS = ["csv", "tsv", "xls", "xlsx"] as const;
+type ValidFormat = (typeof VALID_FORMATS)[number];
+
+function getValidFormat(ext: string | undefined): ValidFormat {
+  if (ext && VALID_FORMATS.includes(ext as ValidFormat)) {
+    return ext as ValidFormat;
+  }
+  return "csv";
+}
+
 export async function POST(request: NextRequest): Promise<NextResponse> {
   const body = (await request.json()) as HandleUploadBody;
 
@@ -19,7 +29,6 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           throw new Error("Unauthorized: Please sign in first");
         }
 
-        // Return token parameters for client upload
         return {
           maximumSizeInBytes: 100 * 1024 * 1024, // 100 MB max
           tokenPayload: JSON.stringify({ userId }),
@@ -34,7 +43,8 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
           const { userId } = JSON.parse(tokenPayload);
           const rawName = blob.pathname.split("/").pop() || "dataset";
           const originalFileName = rawName.replace(/^\d+-/, "");
-          const extension = (originalFileName.split(".").pop() || "csv").toLowerCase();
+          const rawExtension = (originalFileName.split(".").pop() || "csv").toLowerCase();
+          const extension: ValidFormat = getValidFormat(rawExtension);
           const datasetName = originalFileName.replace(/\.[^/.]+$/, "");
 
           await connectToDatabase();
@@ -69,7 +79,7 @@ export async function POST(request: NextRequest): Promise<NextResponse> {
             timestamp: new Date(),
           });
 
-          console.log("Saved dataset to MongoDB Atlas successfully:", dataset._id);
+          console.log("Saved dataset to MongoDB Atlas:", dataset._id);
         } catch (dbErr) {
           console.error("Failed to save dataset in MongoDB Atlas:", dbErr);
         }
