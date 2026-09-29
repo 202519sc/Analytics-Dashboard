@@ -13,31 +13,33 @@ interface UploadResult {
 
 export default function DashboardPage() {
   const [file, setFile] = useState<File | null>(null);
-  const [uploading, setUploading] = useState(false);
+  const [uploadStatus, setUploadStatus] = useState<string | null>(null);
   const [result, setResult] = useState<UploadResult | null>(null);
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!file) return;
 
-    setUploading(true);
+    setUploadStatus("Requesting upload token...");
     setResult(null);
 
     try {
+      // 1. Direct upload using client token handler
       const newBlob = await upload(`datasets/${Date.now()}-${file.name}`, file, {
-        access: "private",
+        access: "public",
         handleUploadUrl: "/api/datasets/upload-token",
       });
 
+      setUploadStatus(null);
       setResult({
         name: file.name,
         url: newBlob.url,
       });
     } catch (err: unknown) {
+      setUploadStatus(null);
       const msg = err instanceof Error ? err.message : "Upload failed";
       setResult({ error: msg });
-    } finally {
-      setUploading(false);
+      console.error("Upload error caught:", err);
     }
   };
 
@@ -59,7 +61,7 @@ export default function DashboardPage() {
         <div className="rounded-2xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-8 shadow-sm">
           <h1 className="text-xl font-bold">Dataset Ingestion Pipeline</h1>
           <p className="mt-1 text-sm text-zinc-500">
-            Upload CSV, TSV, or Excel files. Direct client streaming bypasses Vercel function limits.
+            Upload CSV, TSV, or Excel files. Direct client streaming to Public Vercel Blob store.
           </p>
 
           <form onSubmit={handleUpload} className="mt-6 flex flex-col gap-4">
@@ -67,15 +69,15 @@ export default function DashboardPage() {
               type="file"
               accept=".csv, .tsv, .xls, .xlsx"
               onChange={(e) => setFile(e.target.files?.[0] || null)}
-              className="text-sm file:mr-4 file:rounded-lg file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-zinc-800 dark:file:text-zinc-200"
+              className="text-sm file:mr-4 file:rounded-lg file:border-0 file:bg-blue-50 file:px-4 file:py-2 file:text-sm file:font-semibold file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-zinc-800 dark:file:text-zinc-200 cursor-pointer"
             />
 
             <button
               type="submit"
-              disabled={!file || uploading}
-              className="w-fit rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 disabled:opacity-50 cursor-pointer"
+              disabled={!file || !!uploadStatus}
+              className="w-fit rounded-lg bg-blue-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 disabled:opacity-50 cursor-pointer transition-colors"
             >
-              {uploading ? "Uploading directly to Blob..." : "Upload Dataset"}
+              {uploadStatus ? uploadStatus : "Upload Dataset"}
             </button>
           </form>
 
