@@ -3,6 +3,7 @@ import { auth } from "@clerk/nextjs/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import { Dataset } from "@/models/Dataset";
 import { ProcessingLog } from "@/models/ProcessingLog";
+import { Metadata } from "@/models/Metadata";
 
 const VALID_FORMATS = ["csv", "tsv", "xls", "xlsx"] as const;
 type ValidFormat = (typeof VALID_FORMATS)[number];
@@ -21,7 +22,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
     }
 
-    const { url, pathname, size } = await request.json();
+    const { url, pathname, size, metadata } = await request.json();
     if (!url || !pathname) {
       return NextResponse.json({ error: "Missing file data" }, { status: 400 });
     }
@@ -53,6 +54,16 @@ export async function POST(request: NextRequest) {
         },
       ],
     });
+
+    // Save Extracted Metadata Fact Base
+    if (metadata) {
+      await Metadata.create({
+        datasetId: dataset._id,
+        totalRows: metadata.totalRows,
+        totalColumns: metadata.totalColumns,
+        columns: metadata.columns,
+      });
+    }
 
     await ProcessingLog.create({
       datasetId: dataset._id,

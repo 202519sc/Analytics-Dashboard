@@ -15,6 +15,7 @@
     "mongodb": "^7.7.0",
     "mongoose": "^9.10.2",
     "next": "16.2.12",
+    "papaparse": "^5.7.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
     "vercel": "^61.0.0"
@@ -22,6 +23,7 @@
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/papaparse": "^5.5.2",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "babel-plugin-react-compiler": "1.0.0",
