@@ -12,12 +12,14 @@
     "@clerk/nextjs": "^7.9.7",
     "@vercel/blob": "^2.8.0",
     "@vercel/functions": "^3.9.9",
+    "html2canvas": "^1.4.1",
     "mongodb": "^7.7.0",
     "mongoose": "^9.10.2",
     "next": "16.2.12",
     "papaparse": "^5.7.0",
     "react": "19.2.4",
     "react-dom": "19.2.4",
+    "recharts": "^3.10.1",
     "vercel": "^61.0.0"
   },
   "devDependencies": {

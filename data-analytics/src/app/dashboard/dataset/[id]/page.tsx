@@ -30,7 +30,6 @@ export default async function DatasetDetailsPage({ params }: Props) {
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-[#09090b] text-zinc-900 dark:text-zinc-100 p-8">
       <div className="max-w-7xl mx-auto space-y-6">
-        
         {/* Header */}
         <div className="flex justify-between items-end pb-6 border-b border-zinc-200 dark:border-zinc-800">
           <div>
@@ -42,9 +41,14 @@ export default async function DatasetDetailsPage({ params }: Props) {
               Active Version: <span className="font-bold text-zinc-900 dark:text-white">v{dataset.currentVersion}</span>
             </p>
           </div>
-          <a href={dataset.versions[dataset.currentVersion - 1].fileUrl} target="_blank" rel="noreferrer" className="px-4 py-2 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-lg text-sm font-semibold hover:opacity-80 transition-opacity">
-            Download v{dataset.currentVersion} File
-          </a>
+          <div className="flex items-center gap-3">
+            <Link href={`/dashboard/dataset/${id}/visualize`} className="px-4 py-2 bg-indigo-600 text-white rounded-lg text-sm font-semibold hover:bg-indigo-500 transition-colors flex items-center gap-2">
+              <span>📊</span> Visualize Data
+            </Link>
+            <a href={dataset.versions[dataset.currentVersion - 1].fileUrl} target="_blank" rel="noreferrer" className="px-4 py-2 bg-zinc-900 dark:bg-white text-white dark:text-zinc-900 rounded-lg text-sm font-semibold hover:opacity-80 transition-opacity">
+              Download v{dataset.currentVersion} File
+            </a>
+          </div>
         </div>
 
         {/* Top-Level Stats */}
