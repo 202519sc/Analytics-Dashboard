@@ -4,7 +4,8 @@ import { Metadata } from "@/models/Metadata";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { generateCleaningRecommendations } from "@/lib/engines/cleaningEngine";
-import CleaningStagingArea from "@/components/CleaningStagingArea";
+import { runExpertSystem } from "@/lib/engines/preprocessingEngine";
+import SidebarTabs from "@/components/SidebarTabs";
 
 type Props = {
   params: Promise<{ id: string }>;
@@ -24,6 +25,7 @@ export default async function DatasetDetailsPage({ params }: Props) {
 
   const metadata = await Metadata.findOne({ datasetId: id }).lean();
   const cleaningRecs = metadata ? generateCleaningRecommendations(metadata as any) : [];
+  const prepRecs = metadata ? runExpertSystem(metadata as any) : [];
 
   return (
     <div className="min-h-screen bg-zinc-50 dark:bg-[#09090b] text-zinc-900 dark:text-zinc-100 p-8">
@@ -58,7 +60,6 @@ export default async function DatasetDetailsPage({ params }: Props) {
             </div>
             <div className="p-5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
               <div className="text-sm text-zinc-500">Duplicate Rows</div>
-              {/* Safe fallback for older datasets added here */}
               <div className="text-2xl font-bold text-red-500">{(metadata.duplicateRows || 0).toLocaleString()}</div>
             </div>
             <div className="p-5 rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900">
@@ -115,7 +116,6 @@ export default async function DatasetDetailsPage({ params }: Props) {
                           {col.min !== null && col.min !== undefined ? `${Number(col.min).toFixed(1)} / ${Number(col.max).toFixed(1)}` : '-'}
                         </td>
                         <td className="px-4 py-3 text-xs">
-                          {/* Safe fallback for inconsistentCount added here */}
                           {(col.inconsistentCount || 0) > 0 && (
                             <span className="text-amber-600 dark:text-amber-400">{col.inconsistentCount} invalid types</span>
                           )}
@@ -126,17 +126,18 @@ export default async function DatasetDetailsPage({ params }: Props) {
                 </table>
               </div>
             </div>
-            
           </div>
 
-          {/* Sidebar Engines */}
+          {/* Sidebar Engines - NOW TABBED */}
           <div className="space-y-6">
-            <CleaningStagingArea 
-              datasetId={id} 
-              recommendations={cleaningRecs} 
-              qualityScore={metadata?.qualityScore || 100} 
+            <SidebarTabs 
+              datasetId={id}
+              cleaningRecs={cleaningRecs}
+              qualityScore={metadata?.qualityScore || 100}
+              prepRecs={prepRecs}
             />
           </div>
+
         </div>
       </div>
     </div>
