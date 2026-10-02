@@ -127,8 +127,13 @@ export async function extractMetadataClientSide(file: File): Promise<ExtractedMe
 
         // Compute Quality Score (100 - penalties)
         const missingPenalty = (totalMissing / totalCells) * 100;
-        const duplicatePenalty = (duplicateRows / totalRows) * 50; // Heavily penalize duplicates
-        const qualityScore = Math.max(0, Math.round(100 - missingPenalty - duplicatePenalty));
+        const duplicatePenalty = (duplicateRows / totalRows) * 50; 
+        let qualityScore = Math.max(0, Math.round(100 - missingPenalty - duplicatePenalty));
+
+        // Strict Guard: Never round to 100 if there are any issues
+        if ((totalMissing > 0 || duplicateRows > 0) && qualityScore === 100) {
+          qualityScore = 99;
+        }
 
         resolve({ totalRows, totalColumns: headers.length, duplicateRows, qualityScore, columns });
       },

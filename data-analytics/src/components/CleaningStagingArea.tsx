@@ -54,8 +54,8 @@ export default function CleaningStagingArea({ datasetId, recommendations, qualit
     }
   };
 
-  // Determine if there is actually anything to clean
-  const isPerfectlyClean = qualityScore === 100 || recommendations.length === 0;
+// Determine if there is actually anything to clean
+  const isPerfectlyClean = recommendations.length === 0;
 
   return (
     <div className="rounded-xl border border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 p-6 flex flex-col h-full">

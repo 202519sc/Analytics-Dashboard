@@ -164,11 +164,16 @@ export async function POST(request: NextRequest) {
     metadata.columns = remainingColumns;
     metadata.totalColumns = remainingColumns.length;
 
-    const totalCells = metadata.totalRows * metadata.totalColumns;
+   const totalCells = metadata.totalRows * metadata.totalColumns;
     const missingPenalty = totalCells > 0 ? (newTotalMissing / totalCells) * 100 : 0;
     const duplicatePenalty = metadata.totalRows > 0 ? (metadata.duplicateRows / metadata.totalRows) * 50 : 0;
     
-    metadata.qualityScore = Math.max(0, Math.round(100 - missingPenalty - duplicatePenalty));
+    let qualityScore = Math.max(0, Math.round(100 - missingPenalty - duplicatePenalty));
+    
+    if ((newTotalMissing > 0 || metadata.duplicateRows > 0) && qualityScore === 100) {
+      qualityScore = 99;
+    }
+    metadata.qualityScore = qualityScore;
 
     metadata.markModified('columns');
     await metadata.save();
