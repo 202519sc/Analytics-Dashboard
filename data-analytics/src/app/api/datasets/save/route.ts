@@ -55,12 +55,14 @@ export async function POST(request: NextRequest) {
       ],
     });
 
-    // Save Extracted Metadata Fact Base
+    // Save Extracted Metadata Fact Base (NOW INCLUDES NEW FIELDS)
     if (metadata) {
       await Metadata.create({
         datasetId: dataset._id,
         totalRows: metadata.totalRows,
         totalColumns: metadata.totalColumns,
+        duplicateRows: metadata.duplicateRows || 0,
+        qualityScore: metadata.qualityScore || 100,
         columns: metadata.columns,
       });
     }
