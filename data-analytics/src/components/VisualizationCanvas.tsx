@@ -26,7 +26,7 @@ export default function VisualizationCanvas({ datasetId, fileUrl, columns }: Pro
   const [yAxis, setYAxis] = useState<string>("");
   const [isGeminiLoading, setIsGeminiLoading] = useState(false);
 
-const chartRef = useRef<HTMLDivElement>(null);
+  const chartRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Download and parse the raw data for charting
@@ -50,13 +50,37 @@ const chartRef = useRef<HTMLDivElement>(null);
     link.click();
   };
 
+  const [aiInsights, setAiInsights] = useState<any[]>([]);
+
   const askGemini = async () => {
     setIsGeminiLoading(true);
-    // We will build the actual Gemini API call in the next step!
-    setTimeout(() => {
-      alert("Gemini Integration coming in the next step!");
+    setAiInsights([]);
+    try {
+      const res = await fetch("/api/datasets/visualize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ columns }),
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error);
+      
+      setAiInsights(data.recommendations);
+      
+      // Auto-apply the first recommendation!
+      if (data.recommendations.length > 0) {
+        applyInsight(data.recommendations[0]);
+      }
+    } catch (err: any) {
+      alert("AI Analysis failed: " + err.message);
+    } finally {
       setIsGeminiLoading(false);
-    }, 1000);
+    }
+  };
+
+  const applyInsight = (insight: any) => {
+    setChartType(insight.chartType);
+    setXAxis(insight.xAxis);
+    setYAxis(insight.yAxis || "");
   };
 
   // Prepare Data for Rendering
@@ -82,7 +106,9 @@ const chartRef = useRef<HTMLDivElement>(null);
   };
 
   const chartData = getChartData();
-  const yDataKey = yAxis || "count";
+  
+  // FIX: Force pie charts to always read the 'count' key instead of a stale numeric Y-Axis
+  const yDataKey = chartType === "pie" ? "count" : (yAxis || "count");
 
   return (
     <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-6 min-h-0">
@@ -97,13 +123,37 @@ const chartRef = useRef<HTMLDivElement>(null);
           <p className="text-xs text-indigo-700 dark:text-indigo-400 mb-4">
             Let Gemini analyze your metadata and recommend the most insightful visualizations.
           </p>
-          <button 
-            onClick={askGemini}
-            disabled={isGeminiLoading || loading}
-            className="w-full py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-lg hover:bg-indigo-500 transition-colors disabled:opacity-50"
-          >
-            {isGeminiLoading ? "Analyzing Data..." : "Generate Insights"}
-          </button>
+          
+          {aiInsights.length === 0 ? (
+            <button 
+              onClick={askGemini}
+              disabled={isGeminiLoading || loading}
+              className="w-full py-2.5 bg-indigo-600 text-white text-sm font-bold rounded-lg hover:bg-indigo-500 transition-colors disabled:opacity-50"
+            >
+              {isGeminiLoading ? "Analyzing Data..." : "Generate Insights"}
+            </button>
+          ) : (
+            <div className="space-y-3 mt-4">
+              {aiInsights.map((insight, idx) => (
+                <div 
+                  key={idx} 
+                  onClick={() => applyInsight(insight)}
+                  className="p-3 bg-white dark:bg-zinc-800 rounded-lg border border-indigo-100 dark:border-indigo-900 cursor-pointer hover:border-indigo-400 transition-colors shadow-sm"
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-[10px] uppercase font-bold text-white bg-indigo-500 px-2 py-0.5 rounded">
+                      {insight.chartType}
+                    </span>
+                    <span className="text-xs font-bold text-zinc-700 dark:text-zinc-200 truncate">
+                      {insight.xAxis} {insight.yAxis ? `vs ${insight.yAxis}` : ''}
+                    </span>
+                  </div>
+                  <p className="text-[10px] text-zinc-500 leading-snug">{insight.reason}</p>
+                </div>
+              ))}
+              <button onClick={() => setAiInsights([])} className="w-full text-xs text-indigo-600 hover:underline pt-2">Clear Insights</button>
+            </div>
+          )}
         </div>
 
         {/* Manual Controls */}
@@ -190,7 +240,15 @@ const chartRef = useRef<HTMLDivElement>(null);
                 <PieChart margin={{ top: 20, right: 30, left: 20, bottom: 20 }}>
                   <Tooltip contentStyle={{ borderRadius: '8px', color: 'black' }} />
                   <Legend verticalAlign="bottom" height={36} />
-                  <Pie data={chartData} dataKey={yDataKey} nameKey={xAxis} cx="50%" cy="50%" outerRadius={180} label>
+                  <Pie 
+                    data={chartData} 
+                    dataKey="count" 
+                    nameKey={xAxis} 
+                    cx="50%" 
+                    cy="45%" 
+                    outerRadius={140} 
+                    label={({ name, percent = 0 }) => `${name}: ${(percent * 100).toFixed(0)}%`}
+                  >
                     {chartData.map((entry, index) => (
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
